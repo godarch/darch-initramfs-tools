@@ -1,0 +1,5 @@
+darch-initramfs-tools (1.0.0-1) UNRELEASED; urgency=medium
+
+  * Initial release. (Closes: #XXXXXX)
+
+ -- Paul Knopf <pauldotknopf@gmail.com>  Tue, 23 Oct 2018 06:16:04 -0400
