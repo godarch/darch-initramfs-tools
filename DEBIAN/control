@@ -1,0 +1,6 @@
+Package: darch-initramfs-tools
+Version: 1.0.0-1
+Description: darch-initramfs-tools
+Source: darch-initramfs-tools
+Architecture: all
+Maintainer: Paul Knopf <pauldotknopf@gmail.com>
