@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# echo	'Loading Linux linux ...'
+# linux	darch_dir=UUID=a85bf1c9-59a1-4dba-9df9-6fbbfa03466c:/var/lib/darch/stage/live/h42milg9c1r2jqr02ch8q1r3x
+# echo	'Loading initial ramdisk ...'
+
+export DARCH_ROOTFS=
+export DARCH_DIR=
+
+for x in $(cat /proc/cmdline); do
+	case $x in
+	darch_rootfs=*)
+		DARCH_ROOTFS=${x#darch_rootfs=}
+		;;
+	darch_dir=*)
+		DARCH_DIR=${x#darch_dir=}
+		;;
+	esac
+done
+
+export DARCH_DIR_PATH=`echo $DARCH_DIR | sed 's/.*\://g'`
+export DARCH_DIR_DEVICE=`echo $DARCH_DIR | sed 's/:.*//'`
+export ROOT=$DARCH_DIR_DEVICE
+
+mountroot()
+{
+	# Mount the $ROOT parameter to $rootmnt, we will move it later.
+	local_mount_root
+
+	# Move the root that was mounted to another directory so
+	# that we can mount the squashfs image on the /root directory.
+	mkdir -m 0700 /root-real
+	mount -n -o move $rootmnt /root-real
+	mkdir -m 0700 $rootmnt
+
+	# Build the overlay directories and mount them.
+	mkdir -m 0755 -p /run/darch/squashro
+	mkdir -m 0755 -p /run/darch/squashrw
+	mount -t squashfs "/root-real${DARCH_DIR_PATH}/${DARCH_ROOTFS}" /run/darch/squashro
+	mount -t tmpfs -o rw,noatime,mode=755 tmpfs /run/darch/squashrw
+	mkdir -p /run/darch/squashrw/upperdir /run/darch/squashrw/work
+	mount -t overlay overlay -o "lowerdir=/run/darch/squashro,upperdir=/run/darch/squashrw/upperdir,workdir=/run/darch/squashrw/work" "$rootmnt"
+
+	maybe_break darch
+
+	# Run the hooks for the image
+	darch_hooks_dir="/root-real${DARCH_DIR_PATH}/hooks"
+	if [ -e "$darch_hooks_dir" ]; then
+    	for hook_dir in $darch_hooks_dir/*; do
+        	hook_name=`basename ${hook_dir}`
+        	export DARCH_ROOT_FS="${rootmnt}"
+        	export DARCH_HOOK_DIR="${darch_hooks_dir}/${hook_name}"
+
+        	/bin/sh -c ". $DARCH_HOOK_DIR/hook && run"
+    	done
+	fi
+
+	maybe_break darch
+}

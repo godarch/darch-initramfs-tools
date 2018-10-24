@@ -1,0 +1,21 @@
+#!/bin/sh
+PREREQ=""
+prereqs()
+{
+	echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+	prereqs
+	exit 0
+	;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+manual_add_modules squashfs
+manual_add_modules overlay
+copy_exec /usr/bin/printenv
+# Need for hook scripts
+copy_exec /usr/bin/env
