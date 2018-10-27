@@ -16,6 +16,5 @@ esac
 
 manual_add_modules squashfs
 manual_add_modules overlay
-copy_exec /usr/bin/printenv
 # Need for hook scripts
 copy_exec /usr/bin/env

@@ -24,14 +24,20 @@ export ROOT=$DARCH_DIR_DEVICE
 
 mountroot()
 {
+	maybe_break darch-prelocal
+
 	# Mount the $ROOT parameter to $rootmnt, we will move it later.
 	local_mount_root
+	
+	maybe_break darch-premove
 
 	# Move the root that was mounted to another directory so
 	# that we can mount the squashfs image on the /root directory.
 	mkdir -m 0700 /root-real
 	mount -n -o move $rootmnt /root-real
 	mkdir -m 0700 $rootmnt
+
+	maybe_break darch-preoverlay
 
 	# Build the overlay directories and mount them.
 	mkdir -m 0755 -p /run/darch/squashro
@@ -41,7 +47,7 @@ mountroot()
 	mkdir -p /run/darch/squashrw/upperdir /run/darch/squashrw/work
 	mount -t overlay overlay -o "lowerdir=/run/darch/squashro,upperdir=/run/darch/squashrw/upperdir,workdir=/run/darch/squashrw/work" "$rootmnt"
 
-	maybe_break darch
+	maybe_break darch-prehooks
 
 	# Run the hooks for the image
 	darch_hooks_dir="/root-real${DARCH_DIR_PATH}/hooks"
@@ -55,5 +61,5 @@ mountroot()
     	done
 	fi
 
-	maybe_break darch
+	maybe_break darch-done
 }
