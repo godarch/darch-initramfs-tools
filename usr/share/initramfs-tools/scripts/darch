@@ -39,10 +39,19 @@ mountroot()
 
 	maybe_break darch-preoverlay
 
+	# Move the squasfs into memory.
+	# This is because we are latter going to unmount
+	# the drive. This is because some kernels (Debian)
+	# don't support double mounting block devices
+	# while others (Ubuntu) do.
+	# This script is shared between Debian and Ubuntu,
+	# so we need to make this configurable at some point.
+	mv /root-real${DARCH_DIR_PATH}/${DARCH_ROOTFS} /root.squash
+
 	# Build the overlay directories and mount them.
 	mkdir -m 0755 -p /run/darch/squashro
 	mkdir -m 0755 -p /run/darch/squashrw
-	mount -t squashfs "/root-real${DARCH_DIR_PATH}/${DARCH_ROOTFS}" /run/darch/squashro
+	mount -t squashfs /root.squash /run/darch/squashro
 	mount -t tmpfs -o rw,noatime,mode=755 tmpfs /run/darch/squashrw
 	mkdir -p /run/darch/squashrw/upperdir /run/darch/squashrw/work
 	mount -t overlay overlay -o "lowerdir=/run/darch/squashro,upperdir=/run/darch/squashrw/upperdir,workdir=/run/darch/squashrw/work" "$rootmnt"
@@ -60,6 +69,12 @@ mountroot()
         	/bin/sh -c ". $DARCH_HOOK_DIR/hook && run"
     	done
 	fi
+
+	# Unmount the device our rootfs was on so that
+	# it could (possibly) be mounted in our booted
+	# image.
+	maybe_break darch-preunmount
+	umount /root-real
 
 	maybe_break darch-done
 }
