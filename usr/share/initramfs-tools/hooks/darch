@@ -1,5 +1,5 @@
 #!/bin/sh
-PREREQ="live"
+PREREQ=""
 prereqs()
 {
 	echo "$PREREQ"
@@ -14,5 +14,7 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
+manual_add_modules squashfs
+manual_add_modules overlay
 # Need for hook scripts
 copy_exec /usr/bin/env
