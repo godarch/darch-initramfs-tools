@@ -26,6 +26,10 @@ mountroot()
 {
 	maybe_break darch-prelocal
 
+	# Sometimes, lvm isn't initialized. Make a quick call to ensure
+	# all volumes are recognized.
+	vgchange -ay
+
 	# Mount the $ROOT parameter to $rootmnt, we will move it later.
 	local_mount_root
 	
