@@ -50,7 +50,15 @@ mountroot()
 	# while others (Ubuntu) do.
 	# This script is shared between Debian and Ubuntu,
 	# so we need to make this configurable at some point.
-	mv /root-real${DARCH_DIR_PATH}/${DARCH_ROOTFS} /root.squash
+	case "${DARCH_ROOTFS%%:*}" in
+	http|https|ftp)
+		configure_networking
+		wget "${DARCH_ROOTFS}" -O /root.squash
+		;;
+	*)
+		mv /root-real${DARCH_DIR_PATH}/${DARCH_ROOTFS} /root.squash
+		;;
+	esac
 
 	# Build the overlay directories and mount them.
 	mkdir -m 0755 -p /run/darch/squashro
